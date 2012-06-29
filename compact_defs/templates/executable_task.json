@@ -1,0 +1,39 @@
+{
+    "_schema" : "ca.tipsy.v1.ExecutableTask",
+    "task" : "__edit__ Canonical task_key",
+    "exec_type" : "__edit__ PIG | OOZIE",
+    "inputs" : [{
+        "channel" :          "Canonical input channel key",
+        "consumption_mode" : "__optional__ ALL | AUTO (__default__)",
+        "trigger_mode" :     "__optional__ REQUIRED | OPTIONAL (__default__) | NONE",
+        "pig_param" :        "__pig__ P1",
+        "pig_loader" :       "__optional__ __pig__ L1",
+        "mapred_param" :     "__oozie__ M1",
+        "pig_merger" :       "__optional__ F1"
+    }]
+    "outputs" : [{
+        "name" : "Output channel key",
+        "output_mode" : "__optional__ GENERATION | SEGMENT | AUTO (__default__)",
+        "format" : "__optional__ JSON (__default__) | AVRO | TBIN | RAW",
+        "pig_param" : "__pig__ P1",
+        "pig_storer" : "__optional__ S1",
+        "mapred_param" : "__oozie__ M1",
+        "pig_merger" : "__optional__ F1"
+    }],
+    "exec_params" : [ {"param" : P1, "value" : V1}, ...],
+    "incremental" : {
+            <EXEC_TYPE_SPECIFIC_TASK_ATTRIBUTES>,
+        "inputs" : [ {
+            "channel" : C1,
+            "consumption_mode" : "ALL" | "NEW",
+            "trigger_mode" : "REQUIRED" | "OPTIONAL" | "NONE"},...],
+        "outputs" : [ {
+            "name" : O1,
+            "output_mode" : "GENERATION" | "SEGMENT"}, ...],
+        "exec_params" : [ {"param" : P2, "value" : V2}, ...]
+    },
+    "max_segments_per_generation" : MAX_SEGS1,
+    "max_generations_per_channel" : MAX_GENS1,
+    "_rev": <revision_UUID>,
+    "_writer": <writer_UUID>
+}

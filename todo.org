@@ -1,0 +1,4 @@
+* query parameters as map
+* tree UI for browsing through webservice
+* example templates for creation and execution
+* documentation on commands themselves

@@ -1,35 +1,30 @@
-(ns tipsy-shell.workspaces
+(ns tipsy-shell.workspace
   (:use [tipsy-shell.variables]
+        [tipsy-shell.data]
         [tipsy-shell.util]
         [tipsy-shell.http])
   (:require [clojure.data.json :as j])
-  (:import [java.awt Desktop]
-           [com.yahoo.tipsy.shell Utility]
-           [com.yahoo.tipsy.shell.data WorkspacesData WorkspaceData]))
+  (:import [java.awt Desktop]))
 
 (defn read-workspaces []
   "Returns all the workspaces keys as a chimp string representation
 Note. A compact form is not returned here since the chimp
 representation is itself very terse"
-  (GET (str "/ace/v1/workspaces") {:type :workspace}))
+  (GET "/ace/v1/workspaces" {:type :workspaces}))
 
 (defn read-workspace [key]
   "Returns as string the compact representation of the workspace having
   'workspace' attribute 'key'"
   (GET (str "/ace/v1/workspace/" key) {:type :workspace}))
 
-(defn- add-fields [content key]
-  "Adds key to content, also adds all
-fields which can be auto-generated"
-  (reduce (fn [content [path func]]
-            (update-in content path func))
-          content
-          {[:workspace] (constantly key)
-           [:grid_user] (constantly (cur-user))
-           [:queue]     (constantly (cur-queue))
-           [:email]     (constantly (str (cur-user) "@" (email-domain)))
-           [:_rev]      rev
-           [:_writer]   writer}))
+(def ^:private auto-gen-fields
+  {[:workspace] (partial add-field key)
+   [:grid_user] (partial add-field (read-var :cur-user))
+   [:queue]     (partial add-field (read-var :cur-queue))
+   [:email]     (partial add-field (str (read-var :cur-user) "@" (read-var :email-domain)))
+   [:_rev]      (partial add-field (rev))
+   [:_writer]   (partial add-field (writer))})
+
 
 (defn create-workspace
   [key & {:keys [fresh] :or {fresh false}}]
@@ -40,8 +35,8 @@ key of a workspace.  Opens up an editor to edit a workspace. The the
   (let [content (-> (template key :workspace fresh)
                     slurp
                     j/read-json
-                    (add-fields key)
-                    indent-json)
+                    (add-fields key auto-gen-fields)
+                    indent)
         file (expected-template key :workspace)]
     (spit file content)
     (.edit (Desktop/getDesktop) file)))
