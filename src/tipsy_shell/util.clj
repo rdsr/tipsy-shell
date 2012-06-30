@@ -40,39 +40,49 @@ fresh template is returned"
         f
         (fresh-template type)))))
 
-(defn- unfilled? [value]
+(defn- optional? [value]
   "If a field is blank or begins with a #,
 the user has ommitted this."
-  (or (s/blank? value) (.startsWith value "#")))
+  (or (s/blank? value) (.startsWith value "#O")))
 
-(defn compute-value [default-val]
-  "Given a default-val, returns a fn. which
-checks whether the user has specified a value
-for the field, if not returns the default-val,
-else returns the user supplied value."
-  (fn [initial-val]
-    (if (unfilled? initial-val)
-      default-val
-      initial-val)))
+(defn- mandatory [value]
+  (and (not (s/blank? value)) (.startsWith value "##")))
 
 (defn add-defaults [content field-mappings]
   "Fills in default values for feilds for
 which the user didn't provide any default
-value. Also remove fields having keys
-'general-advice'"
+value."
   (letfn [(internal [path value]
             (cond
              (map? value)
              (reduce (fn [r [k v]]
-                       (if (= k :_comment) r
-                           (assoc r k (internal (conj path k) v))))
+                       (assoc r k (internal (conj path k) v)))
                      {} value)
              (vector? value)
              (into [] (map (fn [v] (internal (conj path :i) v)) value))
-             :else
-             (if-let [f (field-mappings path)] ;; TODO: check for mandator feilds and throw exceptions
-                     (f value) value)))]
+             :else ;; TODO: check for mandatory feilds and throw exceptions
+             (if (and (optional? value)
+                      (contains? field-mappings path))
+               (field-mappings path)
+               value)))]
     (internal [] content)))
+
+(defn clean-up [chimp]
+  "Removes nils and unfilled (optional) fields from chimp structure"
+  (cond
+   (map? chimp)
+   (reduce (fn [r [k v]]
+             (let [v (clean-up v)]
+               (if (or (= v :_optional) (= k :_comment))
+                   r
+                   (assoc r k (clean-up v)))))
+             {} chimp)
+   (vector? chimp)
+   (into [] (map clean-up chimp))
+   :else
+   (if (optional? chimp)
+     :_optional
+     chimp)))
 
 (defn fix-path [path]
   (let [path (if (.endsWith path "/")

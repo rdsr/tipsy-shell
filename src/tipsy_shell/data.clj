@@ -9,8 +9,7 @@
 (defn uuid-str [uuid] (.stringValue uuid))
 
 ;; revs and writers
-(defn rev [& _]
-  (.. UUID fromCurrentTime stringValue))
+(defn rev [& _] (.. UUID fromCurrentTime stringValue))
 
 (defn writer [& _]
   (-> :cur-user read-var context-uuid uuid-str))
@@ -26,34 +25,9 @@
         i (.lastIndexOf key ".")]
     (subs key 0 i)))
 
-;; data conversion routines
-(defmulti as-compact
-  "Converts a chimp def. to a compact def. Returns as string"
-  (fn [_ key] key))
-
 (defmulti as-chimp
   "Converts a compact def. to chimp definition. Returns as string"
   (fn [_ key] key))
 
-
-(defmethod as-compact :default
-  [data _] data)
-
 (defmethod as-chimp :default
   [data _] data)
-
-(defn deserialize
-  [content type]
-  (if (read-var :display-chimp)
-    content
-    (as-compact content type)))
-
-(defn serialize
-  [content type]
-  (as-chimp content type))
-
-(defn find-namespace [data key]
-  (let [facet-keys (-> data :facets keys)
-        r (filter #(-> % name (.endsWith (name key)) facet-keys))
-        key (first r)]
-    (get-in data [:facets key :_namespace])))
