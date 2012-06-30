@@ -1,9 +1,0 @@
-{"_writer":"187adf1f-1aee-385e-8c86-34cafa263d6e",
- "_rev":"989b5990-b922-11e1-a234-84b43d4216e0",
- "_schema":"ca.tipsy.v1.Workspace",
- "workspace":"rdsr.ws3",
- "root_dir":"/tmp/ws3",
- "grid_user":"rdsr",
- "queue":"default",
- "email":"rdsr@yahoo-inc.com",
- "comment":"duh"}

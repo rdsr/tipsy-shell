@@ -11,7 +11,7 @@
    :bouncer-url    ""
    :cur-account    ""
    :cur-grid-user  (System/getProperty "user.name")
-   :cur-queue      "default"
+   ;:cur-queue      "default"
    ;:cur-task       ""
    :cur-user       (System/getProperty "user.name")
    :cur-dir        (System/getProperty "user.dir")
@@ -22,11 +22,9 @@
    :version       "v1"
    :compact-defs   (compact-defs-dir)})
 
-
 (def ^:private var->val (atom default-vars))
 
-(defn read-var [key]
-  (@var->val key (str (keyword key) "Not defined")))
+(defn read-var [key] (@var->val key))
 
 (defn update-var [key value]
   (swap! var->val (fn [m] (assoc m (keyword key) value)))

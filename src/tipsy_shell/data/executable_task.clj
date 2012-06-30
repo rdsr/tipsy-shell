@@ -8,16 +8,16 @@
   [data _]
   (let [data (if (string? data) (j/read-json data) data)
         key (get data :task)
-        namespace (workspace key)
+        namespace (key-namespace key)
         name (task key)
         cntxt-id (context-uuid namespace)
-        id (UUID/fromName cntxt-id name)]
-
+        cntxt-id-str (uuid-str cntxt-id)
+        id (-> cntxt-id (UUID/fromName name) uuid-str)]
     (j/json-str
      {:_id id
       :_schema Task/TASK_SCHEMA
       :facets
-      {(str namespace ":task") {:_context   cntxt-id
+      {(str namespace ":task") {:_context   cntxt-id-str
                                 :_facet     (str namespace ":task")
                                 :_id        id
                                 :_keys      [key]
@@ -26,26 +26,18 @@
                                 :_rev       (get data :_rev)
                                 :_schema    "ca.types.v1.Task"
                                 :_writer    (get data :_writer)
-                                :channels   (get data :channels)
-                                :behavior {
-                                           :inputs  (get data :inputs)
-                                           :outputs (get data :outputs)
+                                :behavior {:inputs    (get data :inputs)
+                                           :outputs   (get data :outputs)
                                            :exec_type :PIG
-                                           :script  (get data :script)
-                                           :lib_dir (get data :lib_dir)
-                                           }
-                                }
-
-       (str namespace ":task-resources") {:_id id
-                                          :_context cntxt-id
-                                          :_rev (rev)
-                                          :_facet (str namespace ":task-resources")
-                                          :_schema "ca.types.v1.TaskResources"
-                                          :_writer (get data :_writer)
-                                          :resources []}
-       ;; TODO
-       ;; (str namespace ":deployment") {}}
-       }})))
+                                           :script    (get data :script)
+                                           :lib_dir   (get data :lib_dir)}}
+       (str namespace ":task-resources") {:_id       id
+                                          :_context  cntxt-id-str
+                                          :_rev      (rev)
+                                          :_facet    (str namespace ":task-resources")
+                                          :_schema   "ca.types.v1.TaskResources"
+                                          :_writer   (get data :_writer)
+                                          :resources []}}})))
 
 ;; (defmethod as-compact :executable-pig-task
 ;;   [data _]

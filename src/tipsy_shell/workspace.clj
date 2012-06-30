@@ -7,46 +7,42 @@
   (:import [java.awt Desktop]))
 
 (defn read-workspaces []
-  "Returns all the workspaces keys as a chimp string representation
-Note. A compact form is not returned here since the chimp
-representation is itself very terse"
+  "Returns all the workspaces keys as a
+chimp string representation."
   (GET "/ace/v1/workspaces" {:type :workspaces}))
 
 (defn read-workspace [key]
   "Returns as string the compact representation of the workspace having
   'workspace' attribute 'key'"
-  (GET (str "/ace/v1/workspace/" key) {:type :workspace}))
+  (GET (str "/ace/v1/workspace/" (name key)) {:type :workspace}))
 
-(def ^:private auto-gen-fields
-  {[:workspace] (partial add-field key)
-   [:grid_user] (partial add-field (read-var :cur-user))
-   [:queue]     (partial add-field (read-var :cur-queue))
-   [:email]     (partial add-field (str (read-var :cur-user) "@" (read-var :email-domain)))
-   [:_rev]      (partial add-field (rev))
-   [:_writer]   (partial add-field (writer))})
+(def ^:private field-mappings
+  {[:grid_user] (compute-value (read-var :cur-user))
+   [:queue]     (compute-value "default")
+   [:email]     (compute-value (str (read-var :cur-user) "@" (read-var :email-domain)))
+   [:comment]   (compute-value "")
+   [:_rev]      (compute-value (rev))
+   [:_writer]   (compute-value (writer))})
 
-
-(defn create-workspace
-  [key & {:keys [fresh] :or {fresh false}}]
+(defn create-workspace [key & [fresh]]
   "Allows user to create/modify a workspace.  'key' is the canonical
-key of a workspace.  Opens up an editor to edit a workspace. The the
-'workpsace' attribute in the json template will be filled with the
-'key' specified."
-  (let [content (-> (template key :workspace fresh)
-                    slurp
-                    j/read-json
-                    (add-fields key auto-gen-fields)
-                    indent)
-        file (expected-template key :workspace)]
+key of a workspace.  Opens up an editor to edit/create a workspace."
+  (let [key (name key)
+        content (slurp (template key :workspace fresh))
+        file (expected-file key :workspace)]
     (spit file content)
     (.edit (Desktop/getDesktop) file)))
 
 (defn put-workspace [key]
   "Makes a put request for a workspace. Returns a http status map"
-  (let [file (expected-template key :workspace)]
-    (if (.exists file)
-      (PUT (str "/ace/v1/workspace/" key)
-           (slurp file)
-           {:type :workspace
-            :content-type "application/x-data+json"})
-      (str "Workspace " key " not created. Please create the workspace first"))))
+  (let [key (name key)
+        file (expected-file key :workspace)
+        content (-> file
+                    slurp
+                    j/read-json
+                    (assoc :workspace key) ;; canonical key
+                    (add-defaults field-mappings))]
+    (PUT (str "/ace/v1/workspace/" key)
+         content
+         {:type :workspace
+          :content-type "application/x-data+json"})))

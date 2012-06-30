@@ -10,7 +10,7 @@
         key (get data :workspace)
         namespace (account key)
         name (workspace key)
-        id (context-uuid key)]
+        id (-> key context-uuid uuid-str)]
     (j/json-str
      {:_id id
       :_schema Context/CONTEXT_SCHEMA
@@ -23,7 +23,7 @@
                                :_namespace namespace
                                :_writer    (get data :_writer)
                                :tasks      []}
-       (str namespace ":context") {:_context     (context-uuid namespace)
+       (str namespace ":context") {:_context     (-> namespace context-uuid uuid-str)
                                    :_facet       (str namespace ":context")
                                    :_id          id
                                    :_keys        [key]

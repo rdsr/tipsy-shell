@@ -1,9 +1,11 @@
 {
-    "_schema": "ca.tipsy.v1.Workspace",
-    "workspace": "",
-    "root_dir": "",
-    "grid_user": "",
-    "queue": "",
-    "email": "",
-    "comment": ""
+    "_schema"  : "ca.tipsy.v1.Workspace",
+    "workspace": "#O Canonical workspace key",
+    "root_dir" : "## The workspace root dir",
+    "grid_user": "#O #D property :cur-grid-user",
+    "queue"    : "#O #D 'default'",
+    "email"    : "#O #D From properties :cur-user and :email-domain",
+    "comment"  : "#O"
+    "_rev"     : "#O Filled with a time based UUID generated using current time",
+    "_writer"  : "#O Filled with a name based UUID from the writer's Yahoo! backyard id"
 }

@@ -1,5 +1,6 @@
 (ns tipsy-shell.data.importer-task
-  (:use [tipsy-shell.data])
+  (:use [tipsy-shell.data]
+        [tipsy-shell.util :only (indent)])
   (:require [clojure.data.json :as j])
   (:import [com.yahoo.chimp.core UUID Entity]
            [com.yahoo.content.core Task Context]))
@@ -8,16 +9,16 @@
   [data _]
   (let [data (if (string? data) (j/read-json data) data)
         key (get data :task)
-        namespace (workspace key)
+        namespace (key-namespace key)
         name (task key)
         cntxt-id (context-uuid namespace)
-        id (UUID/fromName cntxt-id name)]
-
+        cntxt-id-str (uuid-str cntxt-id)
+        id (-> cntxt-id (UUID/fromName name) uuid-str)]
     (j/json-str
      {:_id id
       :_schema Task/TASK_SCHEMA
       :facets
-      {(str namespace ":task") {:_context   cntxt-id
+      {(str namespace ":task") {:_context   cntxt-id-str
                                 :_facet     (str namespace ":task")
                                 :_id        id
                                 :_keys      [key]
@@ -28,15 +29,12 @@
                                 :_writer    (get data :_writer)
                                 :channels   (get data :channels)}
        (str namespace ":task-resources") {:_id id
-                                          :_context cntxt-id
+                                          :_context cntxt-id-str
                                           :_rev (rev)
                                           :_facet (str namespace ":task-resources")
                                           :_schema "ca.types.v1.TaskResources"
                                           :_writer (get data :_writer)
-                                          :resources []}
-       ;; TODO
-       ;; (str namespace ":deployment") {}}
-       }})))
+                                          :resources []}}})))
 
 (defmethod as-compact :importer-task
   [data _]

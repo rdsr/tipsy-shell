@@ -20,51 +20,64 @@ Returns a properly formatted json string."
                  (-> :compact-defs read-var (str "/templates")))]
     (File. (str path "/" (name type) ".json"))))
 
-(defn expected-template [key type]
-  "Returns the expected template path for filename 'key'.json
+(defn expected-file [key type]
+  "Returns the expected file path for filename 'key'.json
 Creates the necessary parent dirs if missing"
   (let [file (File. (s/join File/separator [(read-var :compact-defs) (read-var :cur-account) (name type) (str (name key) ".json")]))]
     (-> file .getParentFile .mkdirs)
     file))
 
 (defn template [key type fresh]
-  "Returns the 'type' template file. 'type' may be workspace | task |
-channel. If 'fresh' parameter is specified a fresh template is
-returned. Else if a template corresponding to the 'key' exists that
-is returned, otherwise a fresh template is returned"
+  "Returns the 'type' template file. 'type' may be
+workspace or task. If 'fresh' parameter is specified a
+fresh template is returned, else if a file corresponding
+to the 'key' exists, that is returned, otherwise a
+fresh template is returned"
   (if fresh
     (fresh-template type)
-    (let [f (expected-template key type)]
+    (let [f (expected-file key type)]
       (if (.exists f)
         f
         (fresh-template type)))))
 
-(defn default? [value]
-  (or (s/blank? value) (.beginsWith value "#")))
+(defn- unfilled? [value]
+  "If a field is blank or begins with a #,
+the user has ommitted this."
+  (or (s/blank? value) (.startsWith value "#")))
 
-(defn add-field [f initial-val]
-  (if (default? initial-val)
-    (if (fn? f)
-      (f initial-val)
-      f)
-    initial-val))
+(defn compute-value [default-val]
+  "Given a default-val, returns a fn. which
+checks whether the user has specified a value
+for the field, if not returns the default-val,
+else returns the user supplied value."
+  (fn [initial-val]
+    (if (unfilled? initial-val)
+      default-val
+      initial-val)))
 
-(defn add-fields [content key fields]
-  "Adds key to content, also adds all
-fields which can be auto-generated,
-fields is a map containing mapping
-from path/to/field in content to fn
-which would generat the field's value."
-  (reduce (fn [content [path func]]
-            (update-in content path func))
-          content fields))
+(defn add-defaults [content field-mappings]
+  "Fills in default values for feilds for
+which the user didn't provide any default
+value. Also remove fields having keys
+'general-advice'"
+  (letfn [(internal [path value]
+            (cond
+             (map? value)
+             (reduce (fn [r [k v]]
+                       (if (= k :_comment) r
+                           (assoc r k (internal (conj path k) v))))
+                     {} value)
+             (vector? value)
+             (into [] (map (fn [v] (internal (conj path :i) v)) value))
+             :else
+             (if-let [f (field-mappings path)] ;; TODO: check for mandator feilds and throw exceptions
+                     (f value) value)))]
+    (internal [] content)))
 
-(defn remove-defaults
-  [content]
-  "Returns a structure where all string
-values which begin with '#' are removed"
-  (reduce (fn [content [key value]]
-            (if (string? value)
-              (if (default? value) (dissoc content key) content)
-              (assoc content key (remove-defaults value))))
-          content))
+(defn fix-path [path]
+  (let [path (if (.endsWith path "/")
+               (subs path 0 (dec (count path)))
+               path)]
+    (if (.startsWith path "/") ;; absolute
+      path
+      (str (read-var :cur-dir) "/" path))))
