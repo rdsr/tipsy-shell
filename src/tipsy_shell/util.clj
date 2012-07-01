@@ -1,7 +1,8 @@
 (ns tipsy-shell.util
   (:use [tipsy-shell.variables])
   (:require [clojure.string :as s]
-            [clojure.data.json :as j])
+            [clojure.data.json :as j]
+            [clojure.pprint :as pp])
   (:import [java.io File]))
 
 ;; json indentation
@@ -45,7 +46,7 @@ fresh template is returned"
 the user has ommitted this."
   (or (s/blank? value) (.startsWith value "#O")))
 
-(defn- mandatory [value]
+(defn- mandatory? [value]
   (and (not (s/blank? value)) (.startsWith value "##")))
 
 (defn add-defaults [content field-mappings]
@@ -60,11 +61,13 @@ value."
                      {} value)
              (vector? value)
              (into [] (map (fn [v] (internal (conj path :i) v)) value))
-             :else ;; TODO: check for mandatory feilds and throw exceptions
-             (if (and (optional? value)
-                      (contains? field-mappings path))
-               (field-mappings path)
-               value)))]
+             :else (cond (mandatory? value)
+                         (throw (IllegalArgumentException.
+                                 (str "Please fill the mandatoy value " value)))
+                         (and (optional? value)
+                              (contains? field-mappings path))
+                         (field-mappings path)
+                         :else value)))]
     (internal [] content)))
 
 (defn clean-up [chimp]

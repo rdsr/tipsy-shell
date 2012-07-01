@@ -1,11 +1,13 @@
 {
    "_schema" : "ca.tipsy.v1.ImporterTask"
    "task"    : "#O Canonical task key."
-   "channels" : [{
+
+    "channels" : [{
        "_comment" : "Just copy/paste this object for adding mutiple channels"
        "name"     : "## channel name (Not canonical)"
        "format"   : "#O #D JSON | AVRO | TBIN | RAW"
    }]
-    "_rev"     : "#O Filled with a time based UUID generated using current time",
+
+    "_rev"     : "#O Filled with a time based UUID generated using current time"
     "_writer"  : "#O Filled with a name based UUID from the writer's Yahoo! backyard id"
 }

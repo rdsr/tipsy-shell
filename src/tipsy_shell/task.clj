@@ -13,7 +13,11 @@
 
 (defn read-tasks
   "Given a canonical workspace key, enumerates
-all tasks in the specified workspace."
+all tasks in the specified workspace.
+
+Example
+> (read-tasks \"tipsy.ws\")
+> (read-tasks :tipsy.ws)"
   [ws-key]
   (GET (str "/ace/v1/tasks/" (name ws-key)) {:type :tasks}))
 
@@ -23,7 +27,11 @@ representation for a deployed Task. The snapshot
 parameter is optional, and defaults to the most
 recently deployed revision. If present, the most
 recent deployment that is within the snapshot
-range is returned."
+range is returned.
+
+Example
+> (read-task \"tipsy.ws.it\")
+> (read-task :tipsy.ws.it)"
   [key & [snapshot]]
   (GET (str "/ace/v1/task/" (name key))
        (merge {:type :task}
@@ -84,7 +92,6 @@ to chimp before uploading."
                     (add-defaults field-mappings)
                     (as-chimp :importer-task))]
     (PUT (str "/ace/v1/task/" (name key)) content {:content-type "application/x-data+json"})))
-
 
 ;; zip utils for executable task
 (defn- add-entry [name resource os]

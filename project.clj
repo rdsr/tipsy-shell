@@ -1,4 +1,4 @@
-(defproject tipsy-shell "1.0.0-SNAPSHOT"
+(defproject tipsy-shell "1.0"
   :description "A prototype to experiment with tipsy-shell"
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/data.json "0.1.2"]

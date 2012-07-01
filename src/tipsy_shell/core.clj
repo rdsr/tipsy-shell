@@ -10,6 +10,8 @@
             [tipsy-shell.util :as u]
             [clojure.java.shell :as s]))
 
+
+
 ;; Making  all names explicit here since lrwrap will need
 ;; to read only one file 'core.clj and other fns/vars etc
 ;; won't be exposed to user when auto-completing.'
@@ -124,3 +126,16 @@ Example
         {:keys [exit out err]} (apply s/sh args)]
     (if (= exit 0) (println out) (println err))
     :done!))
+
+(println "
+Type (doc symbol-name) where symbol-name may be one of:
+
+all-vars
+update-var
+read-workspace
+create-workspace
+read-task
+sh
+
+or most of what you see when you press tab.
+")

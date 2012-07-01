@@ -3,7 +3,7 @@
     "task"      : "#O Canonical task key."
     "exec_type" : "PIG"
     "script"    : "## Path to pig script. Either absolute or relative to :cur-dir"
-    "lib_dir"   : "#O Path to lib dir. Either absolute or relative to :cur-dir"
+    "lib_dir"   : "#O Path to lib dir. Either absolute or relative to :cur-dir. #D 'lib' relative to :cur-dir"
 
     "inputs"    : [{
         "_comment" : "Just copy/paste this object for adding mutiple inputs"

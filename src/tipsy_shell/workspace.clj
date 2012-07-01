@@ -8,13 +8,21 @@
 
 (defn read-workspaces
   "Returns all the workspaces keys as a
-chimp string representation."
+chimp string representation.
+
+Example
+> (read-workspaces)"
   []
   (GET "/ace/v1/workspaces" {:type :workspaces}))
 
 (defn read-workspace
   "Returns as string the compact representation of the workspace having
-  'workspace' attribute 'key'"
+  'workspace' attribute 'key'
+
+Example
+> (read-workspace \"tipsy.ws\")
+> (read-workspace :tipsy.ws)"
+
   [key]
   (GET (str "/ace/v1/workspace/" (name key)) {:type :workspace}))
 
