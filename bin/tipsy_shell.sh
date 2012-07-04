@@ -11,8 +11,11 @@ for i in lib/*.jar; do
 done
 
 if [ -z "$templates_path" ]; then
-    echo "Please set the env variable 'templates_path to /path/to/compact_defs_templates'"
-    exit -1
+
+    cd compact_defs/templates
+    export templates_path=`pwd`
+    cd ../..
+    echo "Updated env. var. templates_path to $templates_path"
 fi
 
 exec rlwrap --remember -c -b $breakchars -f completions \

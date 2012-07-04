@@ -19,7 +19,7 @@ Example
 > (read-tasks \"tipsy.ws\")
 > (read-tasks :tipsy.ws)"
   [ws-key]
-  (GET (str "/ace/v1/tasks/" (name ws-key)) {:type :tasks}))
+  (GET (str "/ace/v1/tasks/" (name ws-key)) {}))
 
 (defn read-task
   "Given a canonical task key, gets the
@@ -33,9 +33,7 @@ Example
 > (read-task \"tipsy.ws.it\")
 > (read-task :tipsy.ws.it)"
   [key & [snapshot]]
-  (GET (str "/ace/v1/task/" (name key))
-       (merge {:type :task}
-              (if snapshot {:snapshot snapshot} {}))))
+  (GET (str "/ace/v1/task/" (name key)) {:snapshot snapshot}))
 
 (defn- edit-task [key type fresh]
   (let [content (slurp (template key type fresh))

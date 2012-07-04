@@ -5,29 +5,27 @@
   (:require [clj-http.client :as client])
   (:import [org.apache.http.client.methods HttpGet]))
 
-(defn success? [code]
-  (and (>= code 200) (< code 300)))
+(defn success? [r]
+  (if (map? r)
+    (success? (:code r))
+    (and (>= r 200) (< r 300))))
 
 (defn- request
   [method uri opts]
-  (let [url (-> :base-url read-var (str uri))]
-    (client/request (merge {:method method :url url :throw-exceptions false} opts))))
+  (let [url (-> :base-url read-var (str uri))
+        r (client/request
+           (merge {:method method :url url :throw-exceptions false}
+                  opts))]
+    {:status (:status r) :body (:body r)}))
 
-(defn GET [uri opts]
-  (let [r (request :get uri opts)]
-    (if (success? (:status r))
-      (:body r)
-      {:status (:status r) :body (:body r)})))
-
-(defn- entity-enc-request
-  [method uri body opts]
-  (let [r (request method uri (assoc opts :body body))]
-    (if (success? (:status r))
-      'done!
-      {:status (:status r) :body (:body r)})))
+(defn GET
+  ([uri] (GET uri {}))
+  ([uri opts]
+     (let [r (request :get uri {:query-params opts})]
+       (if (success? r) (:body r) r))))
 
 (defn POST [uri body opts]
-  (entity-enc-request :post uri body opts))
+  (request :post uri {:query-params opts :body body}))
 
 (defn PUT [uri body opts]
-  (entity-enc-request :put uri body opts))
+  (request :put uri {:query-params opts :body body}))

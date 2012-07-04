@@ -12,7 +12,7 @@
    :cur-account    ""
    :cur-grid-user  (System/getProperty "user.name")
    :cur-user       (System/getProperty "user.name")
-   :cur-dir        (System/getProperty "user.dir")
+   :cur-dir        (System/getProperty "user.home")
    :email-domain   "yahoo-inc.com"
    :base-url       "http://localhost:4080"
    :version       "v1"

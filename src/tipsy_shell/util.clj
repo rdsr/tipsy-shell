@@ -62,8 +62,7 @@ value."
              (vector? value)
              (into [] (map (fn [v] (internal (conj path :i) v)) value))
              :else (cond (mandatory? value)
-                         (throw (IllegalArgumentException.
-                                 (str "Please fill the mandatoy value " value)))
+                         (throw (IllegalArgumentException. (str "Please fill the mandatory value " value)))
                          (and (optional? value)
                               (contains? field-mappings path))
                          (field-mappings path)
@@ -76,21 +75,25 @@ value."
    (map? chimp)
    (reduce (fn [r [k v]]
              (let [v (clean-up v)]
-               (if (or (= v :_optional) (= k :_comment))
+               (if (or (optional? v) (= k :_comment))
                    r
-                   (assoc r k (clean-up v)))))
+                   (assoc r k v))))
              {} chimp)
    (vector? chimp)
    (into [] (map clean-up chimp))
-   :else
-   (if (optional? chimp)
-     :_optional
-     chimp)))
+   :else chimp))
+
+(defn- rm-trlng-slsh [path]
+  (if (.endsWith path "/")
+    (subs path 0 (dec (count path)))
+    path))
+
+(defn- as-abs [path]
+  (if (.startsWith path "/")
+    path
+    (str (read-var :cur-dir) "/" path)))
 
 (defn fix-path [path]
-  (let [path (if (.endsWith path "/")
-               (subs path 0 (dec (count path)))
-               path)]
-    (if (.startsWith path "/") ;; absolute
-      path
-      (str (read-var :cur-dir) "/" path))))
+  (-> path
+      rm-trlng-slsh
+      as-abs))

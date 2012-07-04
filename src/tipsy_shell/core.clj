@@ -6,6 +6,7 @@
             [tipsy-shell.data.workspace]
             [tipsy-shell.data.importer-task]
             [tipsy-shell.data.executable-task]
+            [tipsy-shell.http :as h]
             [tipsy-shell.channel :as c]
             [tipsy-shell.util :as u]
             [clojure.java.shell :as s]))
@@ -20,9 +21,15 @@
 (refer 'tipsy-shell.variables :only '[read-var update-var update-vars])
 (refer 'tipsy-shell.channel :only '[put-channel post-channel])
 
+;; Note the strange dots at the end of many functions are
+;; there coz the user shouldn't be seeing nil everything he
+;; calls a fn. I could just return the reponse, but then it
+;; won't be properly formatted, that's why I resorted to
+;; printing and return a '.' as a return value.
+
 (defn- with-indent [f & args]
   (println (u/indent (apply f args)))
-  'done!)
+  '.)
 
 (defn read-workspaces
   {:doc (-> w/read-workspaces var meta :doc)}
@@ -30,7 +37,7 @@
   (with-indent w/read-workspaces))
 
 (defn read-workspace
-  {:doc (-> w/read-workspaces var meta :doc)}
+  {:doc (-> w/read-workspace var meta :doc)}
   [key]
   (with-indent w/read-workspace key))
 
@@ -52,7 +59,7 @@ Example
 > (all-vars)"
   (doseq [[k v] (v/all-vars)]
     (println k "->" v))
-  'done!)
+  '.)
 
 (defn- standard-doc []
   (println "An editor should pop up just about
@@ -75,6 +82,9 @@ compact definition.
 
 Press enter when done!"))
 
+(defn- handle-resp [r sm]
+  (if (h/success? r) (println sm) (println r)) '.)
+
 (defn create-workspace
   "Create and upload a workspace definition
 
@@ -86,8 +96,7 @@ Example
   (w/edit-workspace key fresh)
   (standard-doc)
   (read-line)
-  (w/put-workspace key))
-
+  (handle-resp (w/put-workspace key)))
 
 (defn create-importer-task
   "Creates and uploads an importer task definition
@@ -100,7 +109,7 @@ Example
   (t/edit-importer-task key fresh)
   (standard-doc)
   (read-line)
-  (t/put-importer-task key))
+  (handle-resp (t/put-importer-task key)))
 
 
 (defn create-executable-task
@@ -114,7 +123,7 @@ Example
   (t/edit-executable-task key exec fresh)
   (standard-doc)
   (read-line)
-  (t/put-executable-task key exec))
+  (handle-resp (t/put-executable-task key exec)))
 
 (defmacro sh [& args]
   "Executes a system command
@@ -125,17 +134,28 @@ Example
   (let [args (map name args)
         {:keys [exit out err]} (apply s/sh args)]
     (if (= exit 0) (println out) (println err))
-    :done!))
+    :.))
 
 (println "
 Type (doc symbol-name) where symbol-name may be one of:
 
 all-vars
+read-var
 update-var
+update-vars
+
+read-workspaces
 read-workspace
 create-workspace
+
+read-tasks
 read-task
+create-importer-task
+create-executable-task
+
+post-channel
+put-channel
+
 sh
 
-or most of what you see when you press tab.
-")
+Or most of what you see when you press tab.")
