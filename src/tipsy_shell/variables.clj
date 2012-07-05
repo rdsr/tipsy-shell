@@ -21,27 +21,24 @@
 (def ^:private var->val (atom default-vars))
 
 (defn read-var
-  "Example
-> (read-var :cur-user)"
+"> (read-var :cur-user)"
   [key] (@var->val (keyword key)))
 
 (defn update-var
-  "Example
-> (update-var :cur-user \"rdsr\")"
+"> (update-var :cur-user \"rdsr\")"
   [key value]
   (swap! var->val (fn [m] (assoc m (keyword key) value)))
-  'done!)
+  [key value])
 
 (defn all-vars
   "Returns all vars with their corresponding
-values"
+values.
+> (all-vars)"
   [] @var->val)
 
 (defn update-vars
   "Updates multiple vars simultaneously
-
-Example
 > (update-vars :cur-user \"rdsr\" :cur-dir \"/tmp/tipsy\")"
   [& kvs]
-  (doseq [[k v] (apply hash-map kvs)]
-    (update-var k v)) 'done!)
+  (for [[k v] (apply hash-map kvs)]
+    (update-var k v)))

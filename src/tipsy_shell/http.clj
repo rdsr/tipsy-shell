@@ -1,13 +1,13 @@
 (ns tipsy-shell.http
   (:use [clojure.data.json]
-        [tipsy-shell.data]
+        [tipsy-shell.ace]
         [tipsy-shell.variables])
   (:require [clj-http.client :as client])
   (:import [org.apache.http.client.methods HttpGet]))
 
 (defn success? [r]
   (if (map? r)
-    (success? (:code r))
+    (success? (:status r))
     (and (>= r 200) (< r 300))))
 
 (defn- request
@@ -21,11 +21,11 @@
 (defn GET
   ([uri] (GET uri {}))
   ([uri opts]
-     (let [r (request :get uri {:query-params opts})]
+     (let [r (request :get uri opts)]
        (if (success? r) (:body r) r))))
 
 (defn POST [uri body opts]
-  (request :post uri {:query-params opts :body body}))
+  (request :post uri (assoc opts :body body)))
 
 (defn PUT [uri body opts]
-  (request :put uri {:query-params opts :body body}))
+  (request :put uri (assoc opts :body body)))

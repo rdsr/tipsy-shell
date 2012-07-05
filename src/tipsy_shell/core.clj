@@ -1,65 +1,17 @@
 (ns tipsy-shell.core
-  (:require [clojure.repl :as r]
-            [tipsy-shell.variables :as v]
-            [tipsy-shell.workspace :as w]
-            [tipsy-shell.task :as t]
-            [tipsy-shell.data.workspace]
-            [tipsy-shell.data.importer-task]
-            [tipsy-shell.data.executable-task]
-            [tipsy-shell.http :as h]
-            [tipsy-shell.channel :as c]
-            [tipsy-shell.util :as u]
-            [clojure.java.shell :as s]))
+  (:require [clojure.java.shell :as s]
+            [tipsy-shell.ace.executable-task]
+            [tipsy-shell.ace.importer-task]
+            [tipsy-shell.ace.workspace])
+  (:use [clojure.repl]
+        [tipsy-shell.api.task]
+        [tipsy-shell.api.workspace]
+        [tipsy-shell.api.channel]
+        [tipsy-shell.api.execution]
+        [tipsy-shell.variables]))
 
-
-
-;; Making  all names explicit here since lrwrap will need
-;; to read only one file 'core.clj and other fns/vars etc
-;; won't be exposed to user when auto-completing.'
-
-(refer 'clojure.repl :only '[doc])
-(refer 'tipsy-shell.variables :only '[read-var update-var update-vars])
-(refer 'tipsy-shell.channel :only '[put-channel post-channel])
-
-;; Note the strange dots at the end of many functions are
-;; there coz the user shouldn't be seeing nil everything he
-;; calls a fn. I could just return the reponse, but then it
-;; won't be properly formatted, that's why I resorted to
-;; printing and return a '.' as a return value.
-
-(defn- with-indent [f & args]
-  (println (u/indent (apply f args)))
-  '.)
-
-(defn read-workspaces
-  {:doc (-> w/read-workspaces var meta :doc)}
-  []
-  (with-indent w/read-workspaces))
-
-(defn read-workspace
-  {:doc (-> w/read-workspace var meta :doc)}
-  [key]
-  (with-indent w/read-workspace key))
-
-(defn read-tasks [ws-key]
-  {:doc (-> t/read-tasks var meta :doc)}
-  [key]
-  (with-indent t/read-tasks ws-key))
-
-(defn read-task [key]
-  {:doc (-> t/read-task var meta :doc)}
-  [key]
-  (with-indent t/read-task key))
-
-(defn all-vars []
-  "Returns all vars with their corresponding
-values.
-
-Example
-> (all-vars)"
-  (doseq [[k v] (v/all-vars)]
-    (println k "->" v))
-  '.)
+;; requiring all namespaces here, since this file will
+;; be loaded by the repl.
 
 (defn- standard-doc []
   (println "An editor should pop up just about
@@ -82,59 +34,43 @@ compact definition.
 
 Press enter when done!"))
 
-(defn- handle-resp [r sm]
-  (if (h/success? r) (println sm) (println r)) '.)
-
 (defn create-workspace
-  "Create and upload a workspace definition
-
-Example
-> (create-workspace \"tipsy.ws\")
-> (create-workspace :tipsy.ws)  ;; same as before
-> (create-workspace \"tipsy.ws\" :fresh)"
+  "Create and upload a workspace definition.
+> (create-workspace :tipsy.ws)
+> (create-workspace :tipsy.ws :fresh)"
   [key & [fresh]]
-  (w/edit-workspace key fresh)
+  (edit-workspace key fresh)
   (standard-doc)
   (read-line)
-  (handle-resp (w/put-workspace key)))
+  (put-workspace key))
 
 (defn create-importer-task
   "Creates and uploads an importer task definition
-
-Example
 > (create-importer-task :tipsy.ws.it)
-> (create-importer-task \"tipsy.ws.it\")
-> (create-importer-task \"tipsy.ws.it\" :fresh)"
+> (create-importer-task :tipsy.ws.it :fresh)"
   [key & [fresh]]
-  (t/edit-importer-task key fresh)
+  (edit-importer-task key fresh)
   (standard-doc)
   (read-line)
-  (handle-resp (t/put-importer-task key)))
-
+  (put-importer-task key))
 
 (defn create-executable-task
-  "Creates and uploads an importer task definition
-
-Example
+  "Creates and uploads an importer task definition.
 > (create-executable-task :tipsy.ws.et :pig)
-> (create-executable-task \"tipsy.ws.et\" :pig)
-> (create-executable-task \"tipsy.ws.et\" :pig :fresh)"
+> (create-executable-task :tipsy.ws.et :pig :fresh)"
   [key exec & [fresh]]
-  (t/edit-executable-task key exec fresh)
+  (edit-executable-task key exec fresh)
   (standard-doc)
   (read-line)
-  (handle-resp (t/put-executable-task key exec)))
+  (put-executable-task key exec))
 
-(defmacro sh [& args]
-  "Executes a system command
-
-Example
-> (sh ls -ltr /)
-> (sh pwd)"
-  (let [args (map name args)
+(defn sh [cmd]
+  "Executes a system command.
+> (sh \"ls -ltr /\")
+> (sh \"pwd\")"
+  (let [args (.split cmd "\\s+")
         {:keys [exit out err]} (apply s/sh args)]
-    (if (= exit 0) (println out) (println err))
-    :.))
+    (if (= exit 0) (println out) (println err))))
 
 (println "
 Type (doc symbol-name) where symbol-name may be one of:
@@ -155,6 +91,8 @@ create-executable-task
 
 post-channel
 put-channel
+read-channels
+etc..
 
 sh
 

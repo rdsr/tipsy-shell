@@ -1,6 +1,6 @@
-(ns tipsy-shell.workspace
+(ns tipsy-shell.api.workspace
   (:use [tipsy-shell.variables]
-        [tipsy-shell.data]
+        [tipsy-shell.ace]
         [tipsy-shell.util]
         [tipsy-shell.http])
   (:require [clojure.data.json :as j])
@@ -9,22 +9,16 @@
 (defn read-workspaces
   "Returns all the workspaces keys as a
 chimp string representation.
-
-Example
 > (read-workspaces)"
   []
-  (GET "/ace/v1/workspaces" {:type :workspaces}))
+  (p-print (GET "/ace/v1/workspaces")))
 
 (defn read-workspace
   "Returns as string the compact representation of the workspace having
   'workspace' attribute 'key'
-
-Example
-> (read-workspace \"tipsy.ws\")
 > (read-workspace :tipsy.ws)"
-
   [key]
-  (GET (str "/ace/v1/workspace/" (name key)) {:type :workspace}))
+  (p-print (GET (str "/ace/v1/workspace/" (name key)))))
 
 (def ^:private field-mappings
   {[:grid_user] (read-var :cur-user)
@@ -34,8 +28,10 @@ Example
    [:_writer]   (writer)})
 
 (defn edit-workspace
-  "Allows user to create/modify a workspace. 'key' is the canonical
-key of a workspace.  Opens up an editor to edit/create a workspace."
+  "Allows user to edit a workspace by firing
+up an editor. 'key' is the canonical key of
+a workspace.
+> (edit-workspace :tipsy.ws)"
   [key & [fresh]]
   (let [key (name key)
         content (slurp (template key :workspace fresh))
@@ -44,7 +40,8 @@ key of a workspace.  Opens up an editor to edit/create a workspace."
     (.edit (Desktop/getDesktop) file)))
 
 (defn put-workspace
-  "Makes a put request for a workspace. Returns a http status map"
+  "Makes a put request for a workspace. Returns a http status map
+> (put-workspace :tipsy.ws)"
   [key]
   (let [key (name key)
         file (expected-file key :workspace)
@@ -54,7 +51,7 @@ key of a workspace.  Opens up an editor to edit/create a workspace."
                     (assoc :workspace key) ;; canonical key
                     (add-defaults field-mappings)
                     (as-chimp :workspace))]
-    (PUT (str "/ace/v1/workspace/" key)
-         content
-         {:type :workspace
-          :content-type "application/x-data+json"})))
+    (p-print
+     (PUT (str "/ace/v1/workspace/" key)
+          content
+          {:content-type "application/x-data+json"}))))

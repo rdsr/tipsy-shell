@@ -1,8 +1,7 @@
 (ns tipsy-shell.util
   (:use [tipsy-shell.variables])
   (:require [clojure.string :as s]
-            [clojure.data.json :as j]
-            [clojure.pprint :as pp])
+            [clojure.data.json :as j])
   (:import [java.io File]))
 
 ;; json indentation
@@ -14,6 +13,17 @@ Returns a properly formatted json string."
     (with-out-str
       (j/pprint-json input))))
 
+;; p-print at the repl.
+(defn p-print [input]
+  "Mostly meant for pretty printing http resp
+on the console."
+  (if (map? input)
+    (println (assoc input
+               :body
+               (indent (:body input))))
+    (println (indent input)))
+  '.) ;; returning a sensible value instead of nil?
+
 ;; compact definition template utils
 (defn fresh-template [type]
   "Returns the fresh template path for filename 'type'.json"
@@ -24,7 +34,8 @@ Returns a properly formatted json string."
 (defn expected-file [key type]
   "Returns the expected file path for filename 'key'.json
 Creates the necessary parent dirs if missing"
-  (let [file (File. (s/join File/separator [(read-var :compact-defs) (read-var :cur-account) (name type) (str (name key) ".json")]))]
+  (let [file (File. (s/join File/separator
+                            [(read-var :compact-defs) (read-var :cur-account) (name type) (str (name key) ".json")]))]
     (-> file .getParentFile .mkdirs)
     file))
 
@@ -44,7 +55,8 @@ fresh template is returned"
 (defn- optional? [value]
   "If a field is blank or begins with a #,
 the user has ommitted this."
-  (or (s/blank? value) (.startsWith value "#O")))
+  (and (string? value)
+       (or (s/blank? value) (.startsWith value "#O"))))
 
 (defn- mandatory? [value]
   (and (not (s/blank? value)) (.startsWith value "##")))
@@ -62,7 +74,7 @@ value."
              (vector? value)
              (into [] (map (fn [v] (internal (conj path :i) v)) value))
              :else (cond (mandatory? value)
-                         (throw (IllegalArgumentException. (str "Please fill the mandatory value " value)))
+                         (throw (IllegalStateException. (str "Please fill the mandatory value " value)))
                          (and (optional? value)
                               (contains? field-mappings path))
                          (field-mappings path)

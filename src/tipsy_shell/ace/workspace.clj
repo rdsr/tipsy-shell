@@ -1,5 +1,5 @@
-(ns tipsy-shell.data.workspace
-  (:use [tipsy-shell.data]
+(ns tipsy-shell.ace.workspace
+  (:use [tipsy-shell.ace]
         [tipsy-shell.util])
   (:require [clojure.data.json :as j])
   (:import [com.yahoo.chimp.core Entity]

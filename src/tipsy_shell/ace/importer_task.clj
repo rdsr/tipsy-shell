@@ -1,5 +1,5 @@
-(ns tipsy-shell.data.importer-task
-  (:use [tipsy-shell.data]
+(ns tipsy-shell.ace.importer-task
+  (:use [tipsy-shell.ace]
         [tipsy-shell.util])
   (:require [clojure.data.json :as j])
   (:import [com.yahoo.chimp.core UUID Entity]

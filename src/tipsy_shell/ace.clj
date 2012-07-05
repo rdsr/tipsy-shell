@@ -1,4 +1,4 @@
-(ns tipsy-shell.data
+(ns tipsy-shell.ace
   (:use [tipsy-shell.variables])
   (:require [clojure.data.json :as j])
   (:import [com.yahoo.chimp.core UUID Entity]))

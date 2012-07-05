@@ -1,5 +1,5 @@
-(ns tipsy-shell.data.executable-task
-  (:use [tipsy-shell.data]
+(ns tipsy-shell.ace.executable-task
+  (:use [tipsy-shell.ace]
         [tipsy-shell.util])
   (:require [clojure.data.json :as j])
   (:import [java.io File]
