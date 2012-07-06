@@ -45,13 +45,13 @@ a workspace.
   [key]
   (let [key (name key)
         file (expected-file key :workspace)
-        content (-> file
+        compact (-> file
                     slurp
                     j/read-json
                     (assoc :workspace key) ;; canonical key
-                    (add-defaults field-mappings)
-                    (as-chimp :workspace))]
+                    (add-defaults field-mappings))
+        chimp (as-chimp :workspace)]
     (p-print
      (PUT (str "/ace/v1/workspace/" key)
-          content
+          chimp
           {:content-type "application/x-data+json"}))))

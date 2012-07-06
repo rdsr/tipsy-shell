@@ -8,7 +8,7 @@
 ;; zip utils for executable task
 
 (defn- zipfile-from
-  "Given a task key, construct a zip file."
+  "Given a task key, construct a new zip file."
   [task-key]
   (File. (str (or (read-var :zip-dir) "/tmp")
               "/"
@@ -17,8 +17,8 @@
 
 (defn- create-resources
   "Given a dir, reads all the files under
-it and any of its child dirs and returns
-a {resources/filename -> file-path} map."
+it and it's children dirs and returns
+a {'pathof file relative to dir' -> 'abs file path'} map."
   [dir]
   (let [dir-sz (count (.getAbsolutePath dir))]
     (reduce (fn [m file]
@@ -39,8 +39,8 @@ adds a zip entry to an zip output stream."
 
 (defn- create-zip
   "Given a file and a resources map,
-it tries to create a zip file having
-path 'filepath'. The resources map should
+tries to create a zip file having path
+'filepath'. The resources map should
 have a key which corresponds to the
 'name' in ZipEntry and the value should
 be the actual 'File' or string and should
