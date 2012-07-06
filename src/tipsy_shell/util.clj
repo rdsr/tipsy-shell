@@ -16,13 +16,18 @@ Returns a properly formatted json string."
 ;; p-print at the repl.
 (defn p-print [input]
   "Mostly meant for pretty printing http resp
-on the console."
+on the console. Actually a hack."
   (if (map? input)
     (println (assoc input
                :body
-               (indent (:body input))))
+               (try
+                 (indent (:body input))
+                 (catch Exception _ (:body input)))))
     (println (indent input)))
-  '.) ;; returning a sensible value instead of nil?
+  '.) ;; returning a sensible value instead of nil,
+;; since displaying nil everytime on the repl
+;; for fns. is annoying. Maybe this is really
+;; stupid.
 
 ;; compact definition template utils
 (defn fresh-template [type]

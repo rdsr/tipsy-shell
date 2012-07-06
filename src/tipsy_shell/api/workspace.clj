@@ -50,7 +50,7 @@ a workspace.
                     j/read-json
                     (assoc :workspace key) ;; canonical key
                     (add-defaults field-mappings))
-        chimp (as-chimp :workspace)]
+        chimp (as-chimp compact :workspace)]
     (p-print
      (PUT (str "/ace/v1/workspace/" key)
           chimp
