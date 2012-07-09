@@ -29,5 +29,5 @@
   "Converts a compact def. to chimp definition. Returns as string"
   (fn [_ key] key))
 
-(defmethod as-chimp :default
-  [data _] data)
+;; (defmethod as-chimp :default
+;;   [data _] data)

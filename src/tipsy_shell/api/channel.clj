@@ -15,7 +15,7 @@ number of items, and starting at the given offset
 into the channel (as a whole).
 > (read-channel :tipsy.ws.it.c)"
   [key & [snapshot start count]]
-  (p-print (GET (str "/ace/v1/channel/" (name key))
+  (println (GET (str "/ace/v1/channel/" (name key))
                 {:query-params {:snapshot snapshot
                                 :start start
                                 :count count}})))
@@ -41,8 +41,8 @@ identifier is one of the values returned by the
 one of the keys of a written segment.
 > (read-segment :tipsy.ws.it.c.20110805-141149-023.20110805-141149-023)"
   [seg-key & [format]]
-  (GET (str "/ace/v1/segment/" (name seg-key))
-       {:query-params {:format format}}))
+  (println (GET (str "/ace/v1/segment/" (name seg-key))
+                {:query-params {:format format}})))
 
 (defn put-channel
   "Writes channel data (adds a segment) to anp

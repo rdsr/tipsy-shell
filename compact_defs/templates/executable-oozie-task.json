@@ -1,0 +1,48 @@
+{
+    "_schema"   : "ca.tipsy.v1.ExecutableTask"
+    "task"      : "#O Canonical task key."
+    "exec_type" : "OOZIE"
+
+    "lib_dir"        : "#O Path to lib dir. Either absolute or relative to :cur-dir. #D 'lib' relative to :cur-dir"
+    "workflow_path"  : "#O #D workflow.xml relative to :cur-dir"
+    "oozie_app_path" : "#O The Oozie workflow application path. #D '/' "
+
+    "inputs"    : [{
+        "_comment" : "Just copy/paste this object for adding mutiple inputs"
+        "channel"          : "## Canonical input channel key"
+        "consumption_mode" : "#O ALL | #D AUTO"
+        "trigger_mode"     : "#O REQUIRED | #D OPTIONAL | NONE"
+        "pig_param"        : "## The parameter name for the input path you'd give in your pig script"
+        "pig_loader"       : "#O For loading the input channel. Tipsy will specify this if omitted unless your input data is in raw format"
+        "pig_merger"       : "#O Tipsy will specify this if omitted unless your input data is in raw format"
+    }]
+
+    "outputs" : [{
+        "_comment" : "Just copy/paste this object for adding mutiple outputs"
+        "name"        : "## Output channel key (Not canonical)"
+        "output_mode" : "#O GENERATION | SEGMENT | #D AUTO"
+        "format"      : "#O #D JSON | AVRO | TBIN | RAW"
+        "pig_param"   : "## The parameter name for the input path you'd give in your pig script"
+        "pig_storer"  : "#O"
+        "pig_merger"  : "#O"
+    }]
+
+    "incremental" : {
+        "_comment" : "You can remove this whole incremental block if u don't plan to do inc. processing."
+        "inputs" : [{
+            "channel"          : "## Canonical input channel key"
+            "consumption_mode" : "#O ALL | #D NEW"
+            "trigger_mode"     : "#O REQUIRED | #D OPTIONAL | NONE"
+        }]
+        "outputs" : [{
+            "name"        : "## Canonical output channel key"
+            "output_mode" : "#O GENERATION | #D SEGMENT"
+        }]
+    }
+
+    "_rev"     : "#O Filled with a time based UUID generated using current time",
+    "_writer"  : "#O Filled with a name based UUID from the writer's Yahoo! backyard id"
+
+    "max_segments_per_generation" : "#O #D 100. The no. of segments in a generation that will trigger compaction."
+    "max_generations_per_channel" : "#O #D 25. The number of generations for a channel that will be retained by GC."
+}

@@ -7,12 +7,12 @@
 
 ;; zip utils for executable task
 
-(defn- zipfile-from
+(defn- zip-filepath
   "Given a task key, construct a new zip file."
-  [task-key]
+  [key]
   (File. (str (or (read-var :zip-dir) "/tmp")
               "/"
-              task-key
+              (name key)
               ".zip")))
 
 (defn- create-resources
@@ -20,7 +20,8 @@
 it and it's children dirs and returns
 a {'pathof file relative to dir' -> 'abs file path'} map."
   [dir]
-  (let [dir-sz (count (.getAbsolutePath dir))]
+  (let [dir (if (string? dir) (File. dir) dir)
+        dir-sz (count (.getAbsolutePath dir))]
     (reduce (fn [m file]
               (assoc m
                 (str "resources"
@@ -52,17 +53,35 @@ Returns the zip file created."
       (add-entry path resource os)))
   file)
 
-(defn zip-from-pig
-  "Create a zip file given a task key,
-a pig script path and lib dir. The
-contents of the chimp structure are
-also added at the top level of the
-zip structure. Here chimp is expected
-to be in string format."
-  [task-key script lib chimp]
-  (let [script (-> script fix-path File.)
-        lib (-> lib fix-path File.)]
-    (create-zip (zipfile-from task-key)
+(defn- zip-from-internal
+  "See zip-from"
+  [key chimp script-wf lib]
+  (let [script-wf (-> script-wf fix-path File.)
+        lib (fix-path lib)]
+    (create-zip (zip-filepath key)
                 (merge (create-resources lib)
-                       {(str "resources/" (.getName script)) script
+                       {(str "resources/" (.getName script-wf)) script-wf
                         "taskdef.json" chimp}))))
+
+(defmulti zip-from
+  "Creates a zip from either a pig or
+oozie executable task. Everything under
+lib_dir is added under a toplevel
+'resources' folder in the zip. The contents
+of the chimp structure are added at the top
+level in a 'taskdef.json' file.  Also,
+either a pig script or workflow.xml is
+added under resources in zip."
+  (fn [_ _ _ exec] exec))
+
+(defmethod zip-from
+  :pig
+  [key compact chimp _]
+  (let [{:keys [script lib_dir]} compact]
+    (zip-from-internal key chimp script lib_dir)))
+
+(defmethod zip-from
+  :oozie
+  [key compact chimp _]
+  (let [{:keys [workflow_path lib_dir]} compact]
+    (zip-from-internal key chimp workflow_path lib_dir)))

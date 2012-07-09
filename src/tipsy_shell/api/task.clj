@@ -6,7 +6,8 @@
         [tipsy-shell.ace.importer-task]
         [tipsy-shell.ace.executable-task])
   (:require [clojure.data.json :as j]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [clojure.string :as s])
   (:import [java.io File FileOutputStream BufferedOutputStream]
            [java.util.zip ZipEntry ZipOutputStream]
            [java.awt Desktop]))
@@ -71,7 +72,8 @@ importer and executable tasks. Hope it all
 works out."
   {[:_rev] (rev)
    [:_writer] (writer)
-   [:lib_dir] "lib"}) ;; adding in shell since this default value will be used to construct a zip
+   [:lib_dir] "lib" ;; adding in shell since this default value will be used to construct a zip
+   [:workflow_path] "workflow.xml"})
 
 (defn put-importer-task
   "Given a canonical task key, makes a put
@@ -102,19 +104,15 @@ and also from the script attribute. The type
 arg. determines the type of executable task
 :pig | :oozie"
   [key exec]
-  (let [key (name key)
-        type (executable-type exec)
+  (let [type (executable-type exec)
         file (expected-file key type)
         compact (-> file
                     slurp
                     j/read-json
-                    (assoc :task key)
+                    (assoc :task (name key))
                     (add-defaults field-mappings))
-        chimp (as-chimp compact type)
-        zip (zip-from-pig key
-                          (:script compact)
-                          (:lib_dir compact)
-                          chimp)]
+        chimp (as-chimp compact :executable-task)
+        zip (zip-from key compact chimp exec)]
     (p-print
      (PUT (str "/ace/v1/task/" (name key))
           zip
